@@ -118,7 +118,9 @@ func (c *Clickhouse) Run() {
 			resp, status := c.SendQuery(data.Params, data.Content)
 			if status != http.StatusOK {
 				log.Printf("Send ERROR %+v: %+v\n", status, resp)
-				c.Dump(data.Params, data.Content)
+				if err = c.Dump(data.Params, data.Content); err != nil {
+					log.Printf("Dump ERROR: %+v\n", err)
+				}
 			}
 			c.wg.Done()
 		}

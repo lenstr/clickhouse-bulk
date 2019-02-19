@@ -1,12 +1,16 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
+	"path"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClickhouse_GetNextServer(t *testing.T) {
@@ -55,14 +59,18 @@ func TestClickhouse_SendQuery1(t *testing.T) {
 }
 
 func TestClickhouse_Dump(t *testing.T) {
-	const dumpName = "dump1.dmp"
+	dumpDir := path.Join(os.TempDir(), fmt.Sprintf("clickhouse-bulk-test-dumps-%v", rand.Int()))
+	defer os.RemoveAll(dumpDir)
+
 	c := NewClickhouse(-1)
-	c.Dumper = new(FileDumper)
 	c.AddServer("")
-	c.Dump("eee", "eee")
+	c.Dumper = &FileDumper{Path: dumpDir}
+
+	err := c.Dump("eee", "eee")
+	assert.NoError(t, err)
 	assert.True(t, c.Empty())
-	buf, err := ioutil.ReadFile(dumpName)
-	assert.Nil(t, err)
+
+	buf, err := ioutil.ReadFile(path.Join(dumpDir, "dump1.dmp"))
+	assert.NoError(t, err)
 	assert.Equal(t, "eee\neee", string(buf))
-	os.Remove(dumpName)
 }

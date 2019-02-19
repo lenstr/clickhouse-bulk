@@ -39,7 +39,9 @@ type FileDumper struct {
 // Dump - dumps data to files
 func (d *FileDumper) Dump(params string, data string) error {
 	if _, err := os.Stat(d.Path); os.IsNotExist(err) {
-		os.Mkdir(d.Path, 644)
+		if err = os.Mkdir(d.Path, 0744); err != nil {
+			return err
+		}
 	}
 	d.DumpNum++
 	err := ioutil.WriteFile(path.Join(d.Path, "dump"+strconv.Itoa(d.DumpNum)+".dmp"), []byte(params+"\n"+data), 0644)
